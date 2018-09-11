@@ -21,14 +21,12 @@ class wall_follower():
         self.P_control = 40.0
         self.offset = 1.0
 
-        self.sendMessage()
+        self.twistPub()
 
 
 
     def laserCallback(self, msg):
         'A function for laser sensor msgs'
-        print("laserCallback")
-
         leftFrontQuadrant = msg.ranges[0:90]
         leftBackQuadrant  = msg.ranges[90:180]
         rightBackQuadrant   = msg.ranges[180:270]
@@ -36,17 +34,17 @@ class wall_follower():
 
         diff = 0
 
-        for rf, rb in zip(rightFrontQuadrant, reversed(rightBackQuadrant)):
-            # print ("right side")
-            if rf == 0.0 or rb == 0.0:
+        for rightFront, rightBack in zip(rightFrontQuadrant, reversed(rightBackQuadrant)):
+            print("right side")
+            if rightFront == 0.0 or rightBack == 0.0:
                 continue
-            diff += rb - rf
+            diff += rightBack - rightFront
 
-        for lf, lb in zip(leftFrontQuadrant, reversed(leftBackQuadrant)):
-            # print("left side")
-            if lf == 0.0 or lb == 0.0:
+        for leftFront, leftBack in zip(leftFrontQuadrant, reversed(leftBackQuadrant)):
+            print("left side")
+            if leftFront == 0.0 or leftBack == 0.0:
                 continue
-            diff += lf - lb
+            diff += leftFront - leftBack
 
         self.ang_err = (math.tanh((diff-self.offset)/self.P_control))
         print(self.ang_err)
@@ -58,7 +56,7 @@ class wall_follower():
         self.ang_vector = Vector3(x=0.0, y=0.0, z=self.ang_err)
 
 
-    def sendMessage(self):
+    def twistPub(self):
         """ Publishes the Twist containing the linear and angular vector """
         print("sendMessage")
         self.pub.publish(Twist(linear=self.lin_vector, angular=self.ang_vector))
@@ -67,8 +65,9 @@ class wall_follower():
     def run(self):
         while not rospy.is_shutdown():
             self.correctAngle()
-            self.sendMessage()
+            self.twistPub()
             self.rate.sleep()
+            rospy.spin()
 
 
 
