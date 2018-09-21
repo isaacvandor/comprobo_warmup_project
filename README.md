@@ -1,7 +1,7 @@
 # comprobo_warmup_project
 This is the base repo for the Olin Computational Robotics warmup project
-Isaac Vandor
-Comprobo 18
+
+Isaac Vandor // Comprobo 18
 
 For code, please go to: [Code scripts](https://github.com/isaacvandor/comprobo_warmup_project/tree/master/warmup_project/scripts)
 
