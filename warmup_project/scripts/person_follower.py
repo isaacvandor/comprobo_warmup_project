@@ -49,7 +49,7 @@ class person_follower():
         lidar_pts.header.frame_id = "base_link"
         lidar_pts.header.stamp = rospy.Time.now()
         lidar_pts.type = 8
-        lidar_pts.scale = Vector3(0.2,0.2,0.2)
+        lidar_pts.scale = Vector3(x=0.2,y=0.2,z=0.2)
         lidar_pts.color = ColorRGBA(1,1,1,0)
         lidar_pts.points = []
 
@@ -79,7 +79,7 @@ class person_follower():
         person_pt.pose.position = Point(point[0],point[1],point[2])
         person_pt.header.frame_id = "base_link"
         person_pt.header.stamp = rospy.Time.now()
-        person_pt.scale = Vector3(0.3,0.3,0.3)
+        person_pt.scale = Vector3(x=0.3,y=0.3,z=0.3)
         person_pt.type = 3 # cylinder is basically human shape, right?
         person_pt.color = ColorRGBA(0,1,0,1)
         self.vis2_pub.publish(person_pt)
@@ -88,9 +88,9 @@ class person_follower():
     def run_pf(self, point):
         # Updates robot angular/linear velocity based on x,y pos of person
 
-        spin = self.turn * point[1]                     # New angular velocity based on person position
+        turn = self.turn * point[1]                     # New angular velocity based on person position
         move = self.move * (point[0] - self.follow_distance) # New linear velocity based on person position - follow_distance
-        return Twist(Vector3(move,0,0),Vector3(0,0,spin)) # Twist those vectors
+        return Twist(Vector3(x=move,y=0,z=0),Vector3(x=0,y=0,z=turn)) # Twist those vectors
 
 
     def runRobot(self):
@@ -102,10 +102,10 @@ class person_follower():
                     self.move_pub.publish(self.run_pf(goal)) # PUBLISH
                     print("we've got a live one")
                 else:
-                    self.move_pub.publish(Twist(Vector3(0,0,0),Vector3(0,0,0.25))) #don't stop, but you know look around for some friends
+                    self.move_pub.publish(Twist(Vector3(x=0,y=0,z=0),Vector3(x=0,y=0,z=0.25))) #don't stop, but you know look around for some friends
                     print("I'm so lonely (so lonely)")
             else:
-                self.move_pub.publish(Twist(Vector3(0,0,0),Vector3(0,0,0))) #really stop, there's no one there
+                self.move_pub.publish(Twist(Vector3(x=0,y=0,z=0),Vector3(x=0,y=0,z=0))) #really stop, there's no one there
                 print("She's dead jim")
 
             self.update_rate.sleep()
