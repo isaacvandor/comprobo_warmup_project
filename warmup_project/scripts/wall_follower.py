@@ -1,11 +1,14 @@
 #!/usr/bin/env python
-"""
+'''
 wall_follower.py
 Isaac Vandor
 CompRobo 2018
 Implements a wall following behavior using the difference between laser data
 detected in different quadrants and a basic (really basic) P control setup.
-"""
+
+Also see basic_wall_follow_PAULINCLASS for generalized approach that I took
+'''
+import future_builtins
 from geometry_msgs.msg import Twist, Vector3
 from sensor_msgs.msg import LaserScan
 import rospy
@@ -20,7 +23,7 @@ class wall_follower():
         self.pub = rospy.Publisher('/cmd_vel', Twist, queue_size=5)
         self.rate = rospy.Rate(2)
 
-        #set wall variables
+        #set wall following variables
         self.wall_err = 0
         self.P = 50.0
         self.wall_offset = 2.5

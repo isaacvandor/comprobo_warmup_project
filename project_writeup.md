@@ -8,14 +8,24 @@ The goal of this project was to program a Neato Robotics Vacuum Cleaner to execu
 Driving in a 1 meter x 1 meter square:
 In order to successfully drive the robot in a square, I used a timing-based approach as I knew this would make it easy to switch between states (forward and turn) thus enabling more complex state-based control in the future. A possible improvement on this approach would be an odometry-based implementation where I use the encoders and robot's known position to drive it in a square as this approach is more reliable and accurate.
 
+For a video of the robot driving in a square, see ![robot driving in a square](https://github.com/isaacvandor/comprobo_warmup_project/blob/master/warmup_project/media/drive_square_video.mp4)
+
 ### Wall Follower
 Driving parallel to a wall:
-In order to successfully implement wall-following behavior, I pre-defined ranges for lidar data in the frontleft, backleft, frontright, and backright of the robot. With these ranges, I was able to calculate the difference between them in order to determine where the wall was relative to the robot (minus a user-defined offset from the wall). I then used P control to ensure the robot stayed parallel to the wall as it drove. While this behavior worked, it is not super robust as the laser data isn't incredibly accurate and the range definitions can sometimes cause the robot to not see the wall or fully understand where it is in relation to the wall. To compensate for this in the future, I might add in other behaviors that find the wall better so the robot can more accurately track it. I also would implement better control of the robot as P control worked okay, but definitely isn't the most robust error control mechanism.
+In order to successfully implement wall-following behavior, I pre-defined ranges for lidar data in the frontleft, backleft, frontright, and backright of the robot (see image below courtesy of Paul Ruvolo). With these ranges, I was able to calculate the difference between them in order to determine where the wall was relative to the robot (minus a user-defined offset from the wall). I then used P control to ensure the robot stayed roughly parallel to the wall as it drove (see reference diagram below courtesy of Tufts NXT Robotics Team). While this behavior worked, it is not super robust as the laser data isn't incredibly accurate and the range definitions can sometimes cause the robot to not see the wall or fully understand where it is in relation to the wall. To compensate for this in the future, I might add in other behaviors that find the wall better so the robot can more accurately track it. I also would implement better control of the robot as P control worked okay, but definitely isn't the most robust error control mechanism.
 
+![four quadrants picture](https://raw.githubusercontent.com/isaacvandor/comprobo_warmup_project/master/warmup_project/media/four_quadrants_laser.png)
+
+![Wall following diagram](https://raw.githubusercontent.com/isaacvandor/comprobo_warmup_project/master/warmup_project/media/wall_following_diagram.png)
+
+For a video of the robot following a wall, see:
+![Wall following video](https://github.com/isaacvandor/comprobo_warmup_project/blob/master/warmup_project/media/wall_follower_video.mp4)
 
 ### Person Follower
 Following a person around as they move:
-In order to successfully implement a person follower, I found the center of mass of the laser measurements in a pre-defined range in front of the robot. Using this method, I was able to determine an x,y position for the person and followed them by staying within user-defined threshold values and a user-defined following distance.
+In order to successfully implement a person follower, I found the center of mass of the laser measurements in a pre-defined range in front of the robot. Using this method, I was able to determine an x,y position for the person and followed them by staying within user-defined threshold values and a user-defined following distance. The diagram below illustrates this approach (Diagram credit: Paul Ruvolo).
+
+![person following diagram](https://raw.githubusercontent.com/isaacvandor/comprobo_warmup_project/master/warmup_project/media/person_following.png)
 
 While this approach worked pretty well in the classroom, it struggled in the hallway due to the large number of items in the environment. Often, the robot became confused whether trash cans, signposts, or the stools were people and would begin following them. Changing some of the variables related to range around the front of the robot that detection is looking for, following distance, and others might help avoid this problem. I could also use my lidar data to identify a centroid made up of a person's legs and utilize that for following.
 
