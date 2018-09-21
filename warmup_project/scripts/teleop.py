@@ -1,7 +1,10 @@
 #!/usr/bin/env python
-''' This is a script to teleop the neato robots
-	Isaac Vandor, Comprobo Fall 18
-'''	
+"""
+teleop.py
+Isaac Vandor
+CompRobo 2018
+A Script to teleop the neato robots
+"""
 from __future__ import print_function, division
 
 import rospy

@@ -1,58 +1,67 @@
 #!/usr/bin/env python
-''' This is a script to drive the neato in an APPROXIMATELY 1mx1m square
-	Isaac Vandor, Comprobo Fall 18
-'''	
+"""
+drive_square.py
+Isaac Vandor
+CompRobo 2018
+Uses a timing-based approach to drive the neatos in a square.
+"""
 from __future__ import print_function, division
 import rospy
-from math import radians
 from geometry_msgs.msg import Twist
 
 class drive_square():
+    """
+    Holds attributes that define the shape and size of the driven square. Also
+    contains an 'act' method that gives the robot commands to drive in the
+    desired square.
+    """
+
     def __init__(self):
-        print('Starting Square Dance')
+        #Init ROS things
         rospy.init_node('drive_square')
+        self.pub = rospy.Publisher('/cmd_vel', Twist, queue_size=10)
+        
+        #Square variables
+        self.square_time = rospy.get_time()
+        self.state = "forward"
+        self.forward_time = 5
+        self.turn_time = 7
 
-        rospy.on_shutdown(self.shutdown)
-
-        self.cmd_vel = rospy.Publisher('cmd_vel', Twist,queue_size=10)
-
-        # Let's set a rate
-        rate = rospy.Rate(10)
+    def runthesejewelsfast(self):
+        """
+        Publishes 'move_cmd' motion commands to drive in the desired square. 
+        """
 
         move_cmd = Twist()
-        move_cmd.linear.x = 0.25
+        
+        #forward
+        if (self.state == "forward"):
+            if (rospy.get_time() - self.square_time >= self.forward_time):
+                move_cmd.angular.z = .25
+                self.state = "turn"
+                self.square_time = rospy.get_time()
+            else:
+                move_cmd.linear.x = .2
+                
+        #turn
+        elif (self.state == "turn"):
+            if (rospy.get_time() - self.square_time >= self.turn_time):
+                move_cmd.linear.x = .2
+                self.state = "forward"
+                self.square_time = rospy.get_time()
+            else:
+                move_cmd.angular.z = .25
+        self.pub.publish(move_cmd)
 
-        turn_cmd = Twist()
-        turn_cmd.linear.x = 0
-        turn_cmd.angular.z = radians(30)
- 
-        count = 0
-        while not rospy.is_shutdown():
-        # go forward
-            rospy.loginfo("Full Speed Ahead")
-            for x in range(0,30):
-                self.cmd_vel.publish(move_cmd)
-                rate.sleep()
-        # turn 90 degrees
-            rospy.loginfo("Hard Turn")
-            for x in range(0,30):
-                self.cmd_vel.publish(turn_cmd)
-                rate.sleep()            
-            count = count + 1
-            if(count == 4): 
-                    count = 0
-            if(count == 0): 
-                    rospy.loginfo("Honey I'm home")
-                    rospy.is_shutdown(True)
 
-    # she's dead jim
-    def shutdown(self):
-        self.cmd_vel.publish(Twist())
-        rospy.sleep(1)
 
-if __name__ == '__main__':
-    try:
-        driver = drive_square()
-    except:
-        rospy.loginfo("Game Over")
-
+if (__name__=="__main__"):
+    """
+    Main method, which initializes Square and runs it
+    """
+    
+    square = drive_square()
+    r = rospy.Rate(10)
+    while (not rospy.is_shutdown()):
+        r.sleep()
+        square.runthesejewelsfast()

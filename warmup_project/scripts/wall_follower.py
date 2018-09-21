@@ -1,4 +1,11 @@
 #!/usr/bin/env python
+"""
+wall_follower.py
+Isaac Vandor
+CompRobo 2018
+Implements a wall following behavior using the difference between laser data
+detected in different quadrants and a basic (really basic) P control setup.
+"""
 from geometry_msgs.msg import Twist, Vector3
 from sensor_msgs.msg import LaserScan
 import rospy
@@ -7,69 +14,58 @@ import math
 class wall_follower():
 
     def __init__(self):
+        # initialize ros variables
         rospy.init_node('wall_follower')
-        rospy.Subscriber('/scan', LaserScan, self.laserCallback)
-
-        self.pub = rospy.Publisher('/cmd_vel', Twist, queue_size=10)
-
+        rospy.Subscriber('/stable_scan', LaserScan, self.laserCallback)
+        self.pub = rospy.Publisher('/cmd_vel', Twist, queue_size=5)
         self.rate = rospy.Rate(2)
 
-        self.lin_vector = Vector3(x=0.0, y=0.0, z=0.0)
-        self.ang_vector = Vector3(x=0.0, y=0.0, z=0.0)
-
-        self.ang_err = 0
-        self.P_control = 40.0
-        self.offset = 1.0
-
-        self.twistPub()
+        #set wall variables
+        self.wall_err = 0
+        self.P = 50.0
+        self.wall_offset = 2.5
+        self.linearVector = Vector3(x=0.0, y=0.0, z=0.0)
+        self.angularVector = Vector3(x=0.0, y=0.0, z=0.0)
 
 
 
     def laserCallback(self, msg):
-        'A function for laser sensor msgs'
-        leftFrontQuadrant = msg.ranges[0:90]
-        leftBackQuadrant  = msg.ranges[90:180]
-        rightBackQuadrant   = msg.ranges[180:270]
-        rightFrontQuadrant  = msg.ranges[270:360]
+        # Set ranges for front, back, left, and right
+        front_left = msg.ranges[0:90]
+        back_left  = msg.ranges[90:180]
+        back_right   = msg.ranges[180:270]
+        front_right  = msg.ranges[270:360]
 
-        diff = 0
+        laser_diff = 0 #set difference between quadrants = 0
 
-        for rightFront, rightBack in zip(rightFrontQuadrant, reversed(rightBackQuadrant)):
-            print("right side")
-            if rightFront == 0.0 or rightBack == 0.0:
+        # Calculate difference between left front and back to determine where wall is on left side
+        for front_left, back_left in zip(front_left, reversed(back_left)):
+            if front_left == 0.0 or back_left == 0.0:
                 continue
-            diff += rightBack - rightFront
+            laser_diff += front_left - back_left
 
-        for leftFront, leftBack in zip(leftFrontQuadrant, reversed(leftBackQuadrant)):
-            print("left side")
-            if leftFront == 0.0 or leftBack == 0.0:
+        # Calculate diff between right front and back to determine where wall is on right side
+        for front_right, back_right in zip(front_right, reversed(back_right)):
+            if front_right == 0.0 or back_right == 0.0:
                 continue
-            diff += leftFront - leftBack
+            laser_diff += back_right - front_right
 
-        self.ang_err = (math.tanh((diff-self.offset)/self.P_control))
-        print(self.ang_err)
+        #determine distance to wall by subtracting laser differences from wall offset & divide by our P variable
+        self.wall_err = (math.tanh((laser_diff-self.wall_offset)/self.P))
 
-    def correctAngle(self):
-        """ Uses P control to correct the angle of the neato """
-
-        self.lin_vector = Vector3(x=0.2, y=0.0, z=0.0)
-        self.ang_vector = Vector3(x=0.0, y=0.0, z=self.ang_err)
-
-
-    def twistPub(self):
-        """ Publishes the Twist containing the linear and angular vector """
-        print("sendMessage")
-        self.pub.publish(Twist(linear=self.lin_vector, angular=self.ang_vector))
+    def run_wf(self):
+        '''Use P control to follow wall with neato'''
+        self.linearVector = Vector3(x=0.2, y=0.0, z=0.0)
+        self.angularVector = Vector3(x=0.0, y=0.0, z=self.wall_err)
+        self.pub.publish(Twist(linear=self.linearVector, angular=self.angularVector))
 
 
-    def run(self):
+    def runRobot(self):
+        '''run these jewels, run these jewels fast'''
         while not rospy.is_shutdown():
-            self.correctAngle()
-            self.twistPub()
+            self.run_wf()
             self.rate.sleep()
-            rospy.spin()
 
-
-
-if __name__=="__main__":
+if __name__ == '__main__':
     wall_follower = wall_follower()
+    wall_follower.runRobot()
